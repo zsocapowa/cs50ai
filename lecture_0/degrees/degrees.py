@@ -57,6 +57,8 @@ def main():
         sys.exit("Usage: python degrees.py [directory]")
     directory = sys.argv[1] if len(sys.argv) == 2 else "large"
 
+    directory = "small"
+
     # Load data from files into memory
     print("Loading data...")
     load_data(directory)
@@ -84,16 +86,46 @@ def main():
             print(f"{i + 1}: {person1} and {person2} starred in {movie}")
 
 
-def shortest_path(source, target):
+def shortest_path(source: str, target: str):
     """
     Returns the shortest list of (movie_id, person_id) pairs
     that connect the source to the target.
 
     If no possible path, returns None.
     """
+    num_explored = 0
+    explored = set()
 
-    # TODO
-    raise NotImplementedError
+    start = Node(state=source, parent=None, action=None)
+    frontier = StackFrontier()
+    frontier.add(start)
+
+    while True:
+
+        # If nothing left in frontier, then no path
+        if frontier.empty():
+            return None
+
+        # Choose a node from the frontier
+        node = frontier.remove()
+        num_explored += 1
+
+        if node.state == target:
+            movie_ids = []
+            person_ids = []
+            while node.parent is not None:
+                movie_ids.append(node.action)
+                person_ids.append(node.state)
+                node = node.parent
+            movie_ids.reverse()
+            person_ids.reverse()
+            return list(zip(movie_ids, person_ids))
+
+        explored.add(node.state)
+        for movie_id, person_id in neighbors_for_person(node.state):
+            if not frontier.contains_state(person_id) and person_id not in explored:
+                child = Node(state=person_id, parent=node, action=movie_id)
+                frontier.add(child)
 
 
 def person_id_for_name(name):
